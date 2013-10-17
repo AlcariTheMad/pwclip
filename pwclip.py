@@ -71,8 +71,11 @@ def argparser():
     parser.add_argument('FILE', help='password settings in YAML format')
     parser.add_argument('-p', action='store_true',
         help='print password instead of copying it to the clipboard')
-    parser.add_argument('-s', type=int, metavar='N',
+    parser.add_argument('-s', '--secret', type=int, metavar='N',
         help='print answer to secret question N')
+    parser.add_argument('-k', '--keyfile', type=str, metavar='KEYFILE',
+        default=os.environ.get(envkey),
+        help='use KEYFILE instead of $PWCLIP_KEYFILE')
     return parser
 
 
@@ -80,14 +83,14 @@ def main():
     parser = argparser()
     args = parser.parse_args()
 
-    if not envkey in os.environ:
-        sys.stderr.write('error: no value for environment variable {}\n'.format(envkey))
+    if not args.keyfile:
+        sys.stderr.write('error: no keyfile specified and no value set for environment variable {}\n'.format(envkey))
         sys.exit(1)
 
-    keyfile = os.environ[envkey]
+    keyfile = args.keyfile
     pwmfile = args.FILE
 
-    pw = genpass_file(keyfile, pwmfile, secret=args.s)
+    pw = genpass_file(keyfile, pwmfile, secret=args.secret)
     if args.p:
         print(pw)
     else:
